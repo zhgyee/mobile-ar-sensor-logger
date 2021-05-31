@@ -82,8 +82,8 @@ public class SettingsFragment extends PreferenceFragmentCompat
                 getPreferenceManager().findPreference("prefCamera");
         ListPreference cameraRez = (ListPreference)
                 getPreferenceManager().findPreference("prefSizeRaw");
-//        ListPreference cameraFocus = (ListPreference)
-//                getPreferenceManager().findPreference("prefFocusDistance");
+        ListPreference cameraFocus = (ListPreference)
+                getPreferenceManager().findPreference("prefFocusDistance");
 
         EditTextPreference prefISO = (EditTextPreference)
                 getPreferenceScreen().findPreference("prefISO");
@@ -177,9 +177,9 @@ public class SettingsFragment extends PreferenceFragmentCompat
                 focuses[i] = focus_lengths[i] + "";
             }
 
-//            cameraFocus.setEntries(focuses);
-//            cameraFocus.setEntryValues(focuses);
-//            cameraFocus.setDefaultValue(focuses[0]);
+            cameraFocus.setEntries(focuses);
+            cameraFocus.setEntryValues(focuses);
+            cameraFocus.setDefaultValue(focuses[0]);
 
         } catch (CameraAccessException | NullPointerException e) {
             e.printStackTrace();
@@ -249,10 +249,10 @@ public class SettingsFragment extends PreferenceFragmentCompat
                     focuses[i] = focus_lengths[i] + "";
                 }
 
-//                ListPreference cameraFocus = (ListPreference)getPreferenceManager().findPreference("prefFocusDistance");
-//                cameraFocus.setEntries(focuses);
-//                cameraFocus.setEntryValues(focuses);
-//                cameraFocus.setValueIndex(0);
+                ListPreference cameraFocus = (ListPreference)getPreferenceManager().findPreference("prefFocusDistance");
+                cameraFocus.setEntries(focuses);
+                cameraFocus.setEntryValues(focuses);
+                cameraFocus.setValueIndex(0);
 
             } catch (CameraAccessException | NullPointerException e) {
                 e.printStackTrace();
