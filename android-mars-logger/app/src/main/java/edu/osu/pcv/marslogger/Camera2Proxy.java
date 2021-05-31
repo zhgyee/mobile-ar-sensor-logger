@@ -372,16 +372,16 @@ public class Camera2Proxy {
 
             // We disable customizing focus distance by user input because
             // it is less flexible than tap to focus.
-//            boolean manualControl = mSharedPreferences.getBoolean("switchManualControl", false);
-//            if (manualControl) {
-//                String focus = mSharedPreferences.getString("prefFocusDistance", "5.0");
-//                Float focusDistance = Float.parseFloat(focus);
-//                mPreviewRequestBuilder.set(
-//                        CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF);
-//                mPreviewRequestBuilder.set(
-//                        CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
-//                Timber.d("Focus distance set to %f", focusDistance);
-//            }
+            boolean manualControl = mSharedPreferences.getBoolean("switchManualControl", false);
+            if (manualControl) {
+                String focus = mSharedPreferences.getString("prefFocusDistance", "5.0");
+                Float focusDistance = Float.parseFloat(focus);
+                mPreviewRequestBuilder.set(
+                        CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF);
+                mPreviewRequestBuilder.set(
+                        CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
+                Timber.d("Focus distance set to %f", focusDistance);
+            }
 
             List<Surface> surfaces = new ArrayList<>();
             if (previewForSnapshot) {

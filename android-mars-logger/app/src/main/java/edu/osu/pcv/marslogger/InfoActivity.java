@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -14,12 +15,22 @@ import android.view.ViewStub;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.File;
+import java.text.BreakIterator;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import timber.log.Timber;
+
 public class InfoActivity extends Activity {
     private static final String TAG = InfoActivity.class.getName();;
     protected boolean mGoogleEnabled = false;
     protected boolean mPaypalEnabled = true;
 
     protected boolean mDebug = false;
+    private boolean mRecordingEnabled = false;
+    private TextView mOutputDirText;
+    private IMUManager mImuManager;
 
 
     @Override
@@ -37,25 +48,7 @@ public class InfoActivity extends Activity {
 
         mGoogleEnabled = BuildConfig.DONATIONS_GOOGLE;
         mPaypalEnabled = !BuildConfig.DONATIONS_GOOGLE;
-        /* Google */
-//        if (mGoogleEnabled) {
-//
-//        }
 
-        /* PayPal */
-        if (mPaypalEnabled) {
-            ViewStub paypalViewStub = (ViewStub)findViewById(R.id.donations__paypal_stub);
-            paypalViewStub.inflate();
-
-            Button btPayPal = (Button)findViewById(R.id.donations__paypal_donate_button);
-            btPayPal.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    donatePayPalOnClick(v);
-                }
-            });
-        }
         addButtonListeners();
     }
 
@@ -64,32 +57,43 @@ public class InfoActivity extends Activity {
         button_done.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                InfoActivity.this.finish();
+                Button button = (Button)v;
+
+                mRecordingEnabled = !mRecordingEnabled;
+                if (mRecordingEnabled) {
+                    String outputDir = renewOutputDir();
+                    String basename = outputDir.substring(outputDir.lastIndexOf("/")+1);
+                    mOutputDirText.setText(basename);
+                    String inertialFile = outputDir + File.separator + "gyro_accel.csv";
+                    mImuManager.startRecording(inertialFile);
+                    button.setText("stop");
+                } else {
+                    mImuManager.stopRecording();
+                    button.setText("start");
+                }
             }
         });
     }
 
-    /**
-     * Donate button with PayPal by opening browser with defined URL For possible parameters see:
-     * https://developer.paypal.com/webapps/developer/docs/classic/paypal-payments-standard/integration-guide/Appx_websitestandard_htmlvariables/
-     */
-    public void donatePayPalOnClick(View view) {
-        Uri payPalUri = Uri.parse("https://www.paypal.me/jianzhuhuai"); // missing 'http://' will cause crashed
-        if (mDebug)
-            Log.d(TAG, "Opening the browser with the url: " + payPalUri.toString());
-
-        Intent viewIntent = new Intent(Intent.ACTION_VIEW, payPalUri);
-        // force intent chooser, do not automatically use PayPal app
-        // https://github.com/PrivacyApps/donations/issues/28
-        String title = getResources().getString(R.string.donations__paypal);
-        Intent chooser = Intent.createChooser(viewIntent, title);
-
-        if (viewIntent.resolveActivity(getPackageManager()) != null) {
-            startActivity(chooser);
-        } else {
-            openDialog(android.R.drawable.ic_dialog_alert, R.string.donations__alert_dialog_title,
-                    getString(R.string.donations__alert_dialog_no_browser));
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (mImuManager == null) {
+            mImuManager = new IMUManager(this);
         }
+        mOutputDirText = (TextView) findViewById(R.id.cameraOutputDir_text);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mImuManager.register();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mImuManager.unregister();
     }
 
     /**
@@ -110,5 +114,27 @@ public class InfoActivity extends Activity {
                 }
         );
         dialog.show();
+    }
+    protected String renewOutputDir() {
+        SimpleDateFormat dateFormat =
+                new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+        String folderName = dateFormat.format(new Date());
+        String dir1 = getFilesDir().getAbsolutePath();
+        String dir2 = Environment.getExternalStorageDirectory().
+                getAbsolutePath() + File.separator + "mars_logger";
+
+        String dir3 = getExternalFilesDir(
+                Environment.getDataDirectory().getAbsolutePath()).getAbsolutePath();
+        Timber.d("dir 1 %s\ndir 2 %s\ndir 3 %s", dir1, dir2, dir3);
+        // dir1 and dir3 are always available for the app even the
+        // write external storage permission is not granted.
+        // "Apparently in Marshmallow when you install with Android studio it
+        // never asks you if you should give it permission it just quietly
+        // fails, like you denied it. You must go into Settings, apps, select
+        // your application and flip the permission switch on."
+        // ref: https://stackoverflow.com/questions/40087355/android-mkdirs-not-working
+        String outputDir = dir3 + File.separator + folderName;
+        (new File(outputDir)).mkdirs();
+        return outputDir;
     }
 }

@@ -62,9 +62,10 @@ Each data session in a folder named after the local time at the start of recordi
 \n\n"/>
 
             <TextView
+                android:id="@+id/cameraOutputDir_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Do you find this application useful?\nSupport its development by sending a donation to the developer!"
+                android:text="Output Dir"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <ViewStub
